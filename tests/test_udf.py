@@ -41,12 +41,12 @@ def secret():
 
 @pytest.fixture(scope="session")
 def namespace():
-    return "vivian"
+    return "unittest"
 
 
 @pytest.fixture(scope="session")
 def bucket():
-    return "tiledb-vivian"
+    return "tiledb-unittest"
 
 
 @pytest.fixture(scope="function")
@@ -131,7 +131,7 @@ def test_ingest_csv_sparse_array(
     Create a sparse array from a CSV file using ingest_csv().
     """
     tiledb.cloud.udf.exec(
-        "s3://{}/{}.csv".format(bucket, "increment"),
+        "s3://{}/inputs/{}.csv".format(bucket, "increment"),
         "s3://{}/{}.tdb".format(bucket, array_name),
         namespace,
         key,
@@ -166,7 +166,7 @@ def test_ingest_csv_sparse_array_apppend(
     ingest mode and then append additional data to it using the append mode.
     """
     tiledb.cloud.udf.exec(
-        "s3://{}/{}.csv".format(bucket, "increment_sparse1"),
+        "s3://{}/inputs/{}.csv".format(bucket, "increment_sparse1"),
         "s3://{}/{}.tdb".format(bucket, array_name),
         namespace,
         key,
@@ -183,12 +183,11 @@ def test_ingest_csv_sparse_array_apppend(
         "tiledb://{}/{}.tdb".format(namespace, array_name), "r", ctx=tiledb.Ctx(config)
     ) as A:
         data = pandas.DataFrame(A[:])
-        print(data)
         number_of_rows = data.shape[0]
         assert number_of_rows == 20
 
     tiledb.cloud.udf.exec(
-        "s3://{}/{}.csv".format(bucket, "increment_sparse2"),
+        "s3://{}/inputs/{}.csv".format(bucket, "increment_sparse2"),
         "s3://{}/{}.tdb".format(bucket, array_name),
         namespace,
         key,
@@ -228,7 +227,7 @@ def test_ingest_csv_sparse_array_apppend_header_mismatch(
     sparse array and must be renamed.
     """
     tiledb.cloud.udf.exec(
-        "s3://{}/{}.csv".format(bucket, "increment_sparse1"),
+        "s3://{}/inputs/{}.csv".format(bucket, "increment_sparse1"),
         "s3://{}/{}.tdb".format(bucket, array_name),
         namespace,
         key,
@@ -245,12 +244,11 @@ def test_ingest_csv_sparse_array_apppend_header_mismatch(
         "tiledb://{}/{}.tdb".format(namespace, array_name), "r", ctx=tiledb.Ctx(config)
     ) as A:
         data = pandas.DataFrame(A[:])
-        print(data)
         number_of_rows = data.shape[0]
         assert number_of_rows == 20
 
     tiledb.cloud.udf.exec(
-        "s3://{}/{}.csv".format(bucket, "increment_sparse2_mismatch"),
+        "s3://{}/inputs/{}.csv".format(bucket, "increment_sparse2_mismatch"),
         "s3://{}/{}.tdb".format(bucket, array_name),
         namespace,
         key,
@@ -290,7 +288,7 @@ def test_ingest_csv_sparse_array_null_replace(
     where the NaNs are replaced with the value given by fillna.
     """
     tiledb.cloud.udf.exec(
-        "s3://{}/{}.csv".format(bucket, "increment_nulls"),
+        "s3://{}/inputs/{}.csv".format(bucket, "increment_nulls"),
         "s3://{}/{}.tdb".format(bucket, array_name),
         namespace,
         key,
@@ -323,7 +321,7 @@ def test_ingest_csv_dense_array(
     Create a dense array from a CSV file using ingest_csv().
     """
     tiledb.cloud.udf.exec(
-        "s3://{}/{}.csv".format(bucket, "increment"),
+        "s3://{}/inputs/{}.csv".format(bucket, "increment"),
         "s3://{}/{}.tdb".format(bucket, array_name),
         namespace,
         key,
@@ -356,7 +354,7 @@ def test_ingest_csv_dense_array_apppend(
     udf_uri, array_name, key, secret, namespace, bucket, config
 ):
     tiledb.cloud.udf.exec(
-        "s3://{}/{}.csv".format(bucket, "increment"),
+        "s3://{}/inputs/{}.csv".format(bucket, "increment"),
         "s3://{}/{}.tdb".format(bucket, array_name),
         namespace,
         key,
@@ -377,7 +375,7 @@ def test_ingest_csv_dense_array_apppend(
         assert number_of_rows == 20
 
     tiledb.cloud.udf.exec(
-        "s3://{}/{}.csv".format(bucket, array_name),
+        "s3://{}/inputs/{}.csv".format(bucket, array_name),
         "s3://{}/{}.tdb".format(bucket, array_name),
         namespace,
         key,
@@ -393,8 +391,6 @@ def test_ingest_csv_dense_array_apppend(
         "tiledb://{}/{}.tdb".format(namespace, array_name), "r", ctx=tiledb.Ctx(config)
     ) as A:
         data = pandas.DataFrame(A[:])
-
-        print(data)
 
         for col, attribute in enumerate(("a", "b", "c"), 1):
             assert_array_equal(
