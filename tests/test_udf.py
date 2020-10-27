@@ -60,7 +60,7 @@ def udf_uri(request, namespace):
     # striping the public_udf module.
     # https://stackoverflow.com/questions/49821323/python3-pickle-a-function-without-side-effects
     udf = types.FunctionType(request.param.__code__, {})
-    test_udf_name = "test-{}".format(udf.__name__)
+    test_udf_name = "test_{}".format(udf.__name__)
 
     if not tiledb.cloud.udf.list_registered_udfs(
         namespace, test_udf_name
@@ -120,9 +120,7 @@ def clean_arrays(array_name, namespace, bucket):
 
 
 @pytest.mark.parametrize(
-    "udf_uri,array_name",
-    [(public_udfs.ingest_csv, "increment")],
-    indirect=["udf_uri"],
+    "udf_uri,array_name", [(public_udfs.ingest_csv, "increment")], indirect=["udf_uri"],
 )
 def test_ingest_csv_sparse_array(
     udf_uri, array_name, key, secret, namespace, bucket, config
@@ -148,8 +146,7 @@ def test_ingest_csv_sparse_array(
 
         for col, attribute in enumerate(("a", "b", "c"), 1):
             assert_array_equal(
-                data[attribute],
-                np.array([row * 10 + col for row in range(1, 21)]),
+                data[attribute], np.array([row * 10 + col for row in range(1, 21)]),
             )
 
 
@@ -207,8 +204,7 @@ def test_ingest_csv_sparse_array_apppend(
 
         for col, attribute in enumerate(("a", "b", "c"), 1):
             assert_array_equal(
-                data[attribute],
-                np.array([row * 10 + col for row in range(1, 21)] * 2),
+                data[attribute], np.array([row * 10 + col for row in range(1, 21)] * 2),
             )
 
 
@@ -270,15 +266,12 @@ def test_ingest_csv_sparse_array_apppend_header_mismatch(
 
         for col, attribute in enumerate(("a", "b", "c"), 1):
             assert_array_equal(
-                data[attribute],
-                np.array([row * 10 + col for row in range(1, 21)] * 2),
+                data[attribute], np.array([row * 10 + col for row in range(1, 21)] * 2),
             )
 
 
 @pytest.mark.parametrize(
-    "udf_uri,array_name",
-    [(public_udfs.ingest_csv, "increment")],
-    indirect=["udf_uri"],
+    "udf_uri,array_name", [(public_udfs.ingest_csv, "increment")], indirect=["udf_uri"],
 )
 def test_ingest_csv_sparse_array_null_replace(
     udf_uri, array_name, key, secret, namespace, bucket, config
@@ -310,9 +303,7 @@ def test_ingest_csv_sparse_array_null_replace(
 
 
 @pytest.mark.parametrize(
-    "udf_uri,array_name",
-    [(public_udfs.ingest_csv, "increment")],
-    indirect=["udf_uri"],
+    "udf_uri,array_name", [(public_udfs.ingest_csv, "increment")], indirect=["udf_uri"],
 )
 def test_ingest_csv_dense_array(
     udf_uri, array_name, key, secret, namespace, bucket, config
@@ -339,16 +330,13 @@ def test_ingest_csv_dense_array(
 
         for col, attribute in enumerate(("a", "b", "c"), 1):
             assert_array_equal(
-                data[attribute],
-                np.array([row * 10 + col for row in range(1, 21)]),
+                data[attribute], np.array([row * 10 + col for row in range(1, 21)]),
             )
 
 
 @pytest.mark.skip
 @pytest.mark.parametrize(
-    "udf_uri,array_name",
-    [(public_udfs.ingest_csv, "increment")],
-    indirect=["udf_uri"],
+    "udf_uri,array_name", [(public_udfs.ingest_csv, "increment")], indirect=["udf_uri"],
 )
 def test_ingest_csv_dense_array_apppend(
     udf_uri, array_name, key, secret, namespace, bucket, config
@@ -394,6 +382,6 @@ def test_ingest_csv_dense_array_apppend(
 
         for col, attribute in enumerate(("a", "b", "c"), 1):
             assert_array_equal(
-                data[attribute],
-                np.array([row * 10 + col for row in range(1, 21)] * 2),
+                data[attribute], np.array([row * 10 + col for row in range(1, 21)] * 2),
             )
+
