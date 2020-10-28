@@ -6,7 +6,7 @@ from contextlib import suppress
 import numpy as np
 from numpy.testing import assert_array_equal
 import os
-import pandas
+import pandas as pd
 import pytest
 import time
 import types
@@ -71,8 +71,7 @@ def udf_uri(request, namespace):
 
     return "{}/{}".format(namespace, test_udf_name)
 
-    # TODO should delete the test UDF at teardown. But this is erroring out for
-    # me at the moment.
+    # TODO should delete the test UDF at teardown.
     # tiledb.cloud.client.client.udf_api.delete_udf_info(namespace, test_udf_name)
 
 
@@ -130,11 +129,10 @@ def test_ingest_csv_sparse_array(
     """
     tiledb.cloud.udf.exec(
         "s3://{}/inputs/{}.csv".format(bucket, "increment"),
-        "s3://{}/{}.tdb".format(bucket, array_name),
-        namespace,
+        "tiledb://{}/s3://{}/{}.tdb".format(namespace, bucket, array_name),
         key,
         secret,
-        name=udf_uri,  # TileDB-Inc/test-ingest_csv
+        name=udf_uri,  # unittest/test_ingest_csv --> TileDB-Inc/ingest_csv
     )
 
     time.sleep(10)
@@ -142,7 +140,7 @@ def test_ingest_csv_sparse_array(
     with tiledb.SparseArray(
         "tiledb://{}/{}.tdb".format(namespace, array_name), "r", ctx=tiledb.Ctx(config)
     ) as A:
-        data = pandas.DataFrame(A[:])
+        data = pd.DataFrame(A[:])
 
         for col, attribute in enumerate(("a", "b", "c"), 1):
             assert_array_equal(
@@ -164,14 +162,13 @@ def test_ingest_csv_sparse_array_apppend(
     """
     tiledb.cloud.udf.exec(
         "s3://{}/inputs/{}.csv".format(bucket, "increment_sparse1"),
-        "s3://{}/{}.tdb".format(bucket, array_name),
-        namespace,
+        "tiledb://{}/s3://{}/{}.tdb".format(namespace, bucket, array_name),
         key,
         secret,
         mode="ingest",
         full_domain=True,
         index_col=("x"),
-        name=udf_uri,  # "TileDB-Inc/test-ingest_csv"
+        name=udf_uri,  # "unittest/test_ingest_csv" --> TileDB-Inc/ingest_csv
     )
 
     time.sleep(10)
@@ -179,20 +176,19 @@ def test_ingest_csv_sparse_array_apppend(
     with tiledb.SparseArray(
         "tiledb://{}/{}.tdb".format(namespace, array_name), "r", ctx=tiledb.Ctx(config)
     ) as A:
-        data = pandas.DataFrame(A[:])
+        data = pd.DataFrame(A[:])
         number_of_rows = data.shape[0]
         assert number_of_rows == 20
 
     tiledb.cloud.udf.exec(
         "s3://{}/inputs/{}.csv".format(bucket, "increment_sparse2"),
-        "s3://{}/{}.tdb".format(bucket, array_name),
-        namespace,
+        "tiledb://{}/s3://{}/{}.tdb".format(namespace, bucket, array_name),
         key,
         secret,
         mode="append",
         full_domain=True,
         index_col=("x"),
-        name=udf_uri,  # "TileDB-Inc/test-ingest_csv"
+        name=udf_uri,  # "unittest/test_ingest_csv" --> TileDB-Inc/ingest_csv
     )
 
     time.sleep(10)
@@ -200,7 +196,7 @@ def test_ingest_csv_sparse_array_apppend(
     with tiledb.SparseArray(
         "tiledb://{}/{}.tdb".format(namespace, array_name), "r", ctx=tiledb.Ctx(config)
     ) as A:
-        data = pandas.DataFrame(A[:])
+        data = pd.DataFrame(A[:])
 
         for col, attribute in enumerate(("a", "b", "c"), 1):
             assert_array_equal(
@@ -224,14 +220,13 @@ def test_ingest_csv_sparse_array_apppend_header_mismatch(
     """
     tiledb.cloud.udf.exec(
         "s3://{}/inputs/{}.csv".format(bucket, "increment_sparse1"),
-        "s3://{}/{}.tdb".format(bucket, array_name),
-        namespace,
+        "tiledb://{}/s3://{}/{}.tdb".format(namespace, bucket, array_name),
         key,
         secret,
         mode="ingest",
         full_domain=True,
         index_col=("x"),
-        name=udf_uri,  # "TileDB-Inc/test-ingest_csv"
+        name=udf_uri,  # "unittest/test_ingest_csv" --> TileDB-Inc/ingest_csv
     )
 
     time.sleep(10)
@@ -239,14 +234,13 @@ def test_ingest_csv_sparse_array_apppend_header_mismatch(
     with tiledb.SparseArray(
         "tiledb://{}/{}.tdb".format(namespace, array_name), "r", ctx=tiledb.Ctx(config)
     ) as A:
-        data = pandas.DataFrame(A[:])
+        data = pd.DataFrame(A[:])
         number_of_rows = data.shape[0]
         assert number_of_rows == 20
 
     tiledb.cloud.udf.exec(
         "s3://{}/inputs/{}.csv".format(bucket, "increment_sparse2_mismatch"),
-        "s3://{}/{}.tdb".format(bucket, array_name),
-        namespace,
+        "tiledb://{}/s3://{}/{}.tdb".format(namespace, bucket, array_name),
         key,
         secret,
         mode="append",
@@ -254,7 +248,7 @@ def test_ingest_csv_sparse_array_apppend_header_mismatch(
         index_col=("x"),
         header=0,
         names=["x", "c", "b", "a"],
-        name=udf_uri,  # "TileDB-Inc/test-ingest_csv"
+        name=udf_uri,  # "unittest/test_ingest_csv" --> TileDB-Inc/ingest_csv
     )
 
     time.sleep(10)
@@ -262,7 +256,7 @@ def test_ingest_csv_sparse_array_apppend_header_mismatch(
     with tiledb.SparseArray(
         "tiledb://{}/{}.tdb".format(namespace, array_name), "r", ctx=tiledb.Ctx(config)
     ) as A:
-        data = pandas.DataFrame(A[:])
+        data = pd.DataFrame(A[:])
 
         for col, attribute in enumerate(("a", "b", "c"), 1):
             assert_array_equal(
@@ -282,12 +276,11 @@ def test_ingest_csv_sparse_array_null_replace(
     """
     tiledb.cloud.udf.exec(
         "s3://{}/inputs/{}.csv".format(bucket, "increment_nulls"),
-        "s3://{}/{}.tdb".format(bucket, array_name),
-        namespace,
+        "tiledb://{}/s3://{}/{}.tdb".format(namespace, bucket, array_name),
         key,
         secret,
         fillna=123,
-        name=udf_uri,  # "TileDB-Inc/test-ingest_csv"
+        name=udf_uri,  # "unittest/test_ingest_csv" --> TileDB-Inc/ingest_csv
     )
 
     time.sleep(10)
@@ -295,7 +288,7 @@ def test_ingest_csv_sparse_array_null_replace(
     with tiledb.SparseArray(
         "tiledb://{}/{}.tdb".format(namespace, array_name), "r", ctx=tiledb.Ctx(config)
     ) as A:
-        data = pandas.DataFrame(A[:])
+        data = pd.DataFrame(A[:])
 
         assert_array_equal(data["a"], np.array([1, 1, 1]))
         assert_array_equal(data["b"], np.array([2, 2, 123]))
@@ -313,12 +306,11 @@ def test_ingest_csv_dense_array(
     """
     tiledb.cloud.udf.exec(
         "s3://{}/inputs/{}.csv".format(bucket, "increment"),
-        "s3://{}/{}.tdb".format(bucket, array_name),
-        namespace,
+        "tiledb://{}/s3://{}/{}.tdb".format(namespace, bucket, array_name),
         key,
         secret,
         sparse=False,
-        name=udf_uri,  # "TileDB-Inc/test-ingest_csv"
+        name=udf_uri,  # "unittest/test_ingest_csv" --> TileDB-Inc/ingest_csv
     )
 
     time.sleep(10)
@@ -326,7 +318,7 @@ def test_ingest_csv_dense_array(
     with tiledb.DenseArray(
         "tiledb://{}/{}.tdb".format(namespace, array_name), "r", ctx=tiledb.Ctx(config)
     ) as A:
-        data = pandas.DataFrame(A[:])
+        data = pd.DataFrame(A[:])
 
         for col, attribute in enumerate(("a", "b", "c"), 1):
             assert_array_equal(
@@ -343,14 +335,13 @@ def test_ingest_csv_dense_array_apppend(
 ):
     tiledb.cloud.udf.exec(
         "s3://{}/inputs/{}.csv".format(bucket, "increment"),
-        "s3://{}/{}.tdb".format(bucket, array_name),
-        namespace,
+        "tiledb://{}/s3://{}/{}.tdb".format(namespace, bucket, array_name),
         key,
         secret,
         mode="ingest",
         full_domain=True,
         sparse=False,
-        name=udf_uri,  # "TileDB-Inc/test-ingest_csv"
+        name=udf_uri,  # "unittest/test_ingest_csv" --> TileDB-Inc/ingest_csv
     )
 
     time.sleep(10)
@@ -358,19 +349,18 @@ def test_ingest_csv_dense_array_apppend(
     with tiledb.DenseArray(
         "tiledb://{}/{}.tdb".format(namespace, array_name), "r", ctx=tiledb.Ctx(config)
     ) as A:
-        data = pandas.DataFrame(A[:])
+        data = pd.DataFrame(A[:])
         number_of_rows = data.shape[0]
         assert number_of_rows == 20
 
     tiledb.cloud.udf.exec(
         "s3://{}/inputs/{}.csv".format(bucket, array_name),
-        "s3://{}/{}.tdb".format(bucket, array_name),
-        namespace,
+        "tiledb://{}/s3://{}/{}.tdb".format(namespace, bucket, array_name),
         key,
         secret,
         mode="append",
         row_start_idx=number_of_rows,
-        name=udf_uri,  # TileDB-Inc/test-ingest_csv
+        name=udf_uri,  # unittest/test_ingest_csv --> TileDB-Inc/ingest_csv
     )
 
     time.sleep(10)
@@ -378,7 +368,7 @@ def test_ingest_csv_dense_array_apppend(
     with tiledb.DenseArray(
         "tiledb://{}/{}.tdb".format(namespace, array_name), "r", ctx=tiledb.Ctx(config)
     ) as A:
-        data = pandas.DataFrame(A[:])
+        data = pd.DataFrame(A[:])
 
         for col, attribute in enumerate(("a", "b", "c"), 1):
             assert_array_equal(

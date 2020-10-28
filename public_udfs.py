@@ -1,12 +1,12 @@
-def ingest_csv(source_csv, target_array, namespace, key, secret, **kwargs):
+def ingest_csv(source_csv, target, key, secret, **kwargs):
     """
     Create TileDB array with an input CSV file located in a given S3 Bucket at source_csv. The S3
     Bucket key and secret credentials must be provided. Outputs a target_array in the given S3
     Bucket and namespace on TileDB Cloud.
 
     :param source_csv: S3 Bucket URI for the input CSV file.
-    :param target_array: The name of the output array.
-    :param namespace: The Cloud TileDB namespace where the output array will be located.
+    :param target: The URI of the output TileDB Cloud array in the style of 
+                   "tiledb://namespace/s3://bucket/array".
     :param key: The AWS Access Key ID for accessing the S3 Bucket.
     :param secret: The AWS Secret Access Key for accessing the S3 Bucket.
     :Keyword Arguments:
@@ -37,8 +37,7 @@ def ingest_csv(source_csv, target_array, namespace, key, secret, **kwargs):
     >>> # Create a sparse array from a CSV file
     >>> tiledb.cloud.udf.exec(
     ...     "s3://bucket/data1.csv",
-    ...     "s3://bucket/array.tdb",
-    ...     "tiledb-cloud-namespace",
+    ...     "tiledb://namespace/s3://array.tdb",
     ...     aws_key,
     ...     aws_secret,
     ...     mode="ingest",
@@ -49,8 +48,7 @@ def ingest_csv(source_csv, target_array, namespace, key, secret, **kwargs):
     >>> # Append additional data to the sparse array
     >>> tiledb.cloud.udf.exec(
     ...     "s3://bucket/data2.csv",
-    ...     "s3://bucket/array.tdb",
-    ...     "tiledb-cloud-namespace",
+    ...     "tiledb://namespace/s3://array.tdb",
     ...     aws_key,
     ...     aws_secret,
     ...     mode="append",
@@ -72,7 +70,6 @@ def ingest_csv(source_csv, target_array, namespace, key, secret, **kwargs):
     # ingest CSV, which will create array
     # - stored on S3
     # - visible in TileDB Console
-    target_tiledb_array = f"tiledb://{namespace}/{target_array}"
-    tiledb.from_csv(target_tiledb_array, source_csv, **kwargs)
+    tiledb.from_csv(target, source_csv, **kwargs)
 
     return "done"

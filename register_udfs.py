@@ -27,7 +27,8 @@ def add_public_udf(fnc, namespace="TileDB-Inc"):
     udf_code = types.FunctionType(fnc.__code__, {})
     udf_name = "{}".format(udf_code.__name__)
 
-    if not tiledb.cloud.udf.info("{}/{}".format(namespace, udf_name)):
+    # if not tiledb.cloud.udf.info("{}/{}".format(namespace, udf_name)):
+    if not tiledb.cloud.udf.list_registered_udfs(namespace, udf_name).udf_info_list:
         tiledb.cloud.udf.register_generic_udf(udf_code, udf_name, namespace=namespace)
     else:
         tiledb.cloud.udf.update_generic_udf(udf_code, udf_name, namespace=namespace)
