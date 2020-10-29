@@ -1,0 +1,75 @@
+trigger:
+  tags:
+    include:
+      - v*
+  branches:
+    include:
+    - master
+
+
+# test and upload my code as an artifact named WebSite
+jobs:
+- job: Build
+  strategy:
+    matrix:
+      mac_36:
+        imageName: 'macOS-10.14'
+        python.version: '3.6'
+      mac_37:
+        imageName: 'macOS-10.14'
+        python.version: '3.7'
+      linux_py36:
+        imageName: 'ubuntu-16.04'
+        python.version: '3.6'
+      linux_py37:
+        imageName: 'ubuntu-16.04'
+        python.version: '3.7'
+  pool:
+    vmImage: $(imageName)
+
+  steps:
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: '$(python.version)'
+      architecture: 'x64'
+
+  - script: python -m pip install --upgrade 'numpy==1.17.*' pytest 
+    # pip installs release candidates by default:
+    #   https://github.com/pypa/pip/issues/4969
+    displayName: 'Install dependencies'
+
+  - script: python -m pip install --upgrade black
+    displayName: 'Install black (linter)'
+  - script: black --check .
+    displayName: 'Test Formatting'
+
+  - script: python -m pip install --upgrade .
+    displayName: 'Test Install'
+
+    # Build the python distribution from source
+  - script: python setup.py bdist_wheel
+    displayName: 'Build wheel'
+
+  - bash: |
+      set -xeo pipefail
+      # Display log files if the build failed
+      echo "Dumping log files for failed build"
+      echo "----------------------------------"
+      for f in $(find $BUILD_REPOSITORY_LOCALPATH/build -name *.log);
+        do echo "------"
+           echo $f
+           echo "======"
+           cat $f
+        done;
+    condition: failed() # only run this job if the build step failed
+    displayName: "Print log files (failed build only)"
+
+  - bash: |
+      set -xeo pipefail
+      pytest
+    # condition: eq(variables['Agent.OS'], 'Linux')
+    env:
+      TILEDB_REST_TOKEN: $(TILEDB_REST_TOKEN)
+      AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
+      AWS_SECRET_KEY_ID: $(AWS_SECRET_KEY_ID)
+    displayName: "Run tests"
