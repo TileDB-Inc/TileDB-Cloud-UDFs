@@ -43,6 +43,8 @@ jobs:
 
   - bash: |
       set -xeo pipefail
+      pip list
+      python -c 'import sys; print(sys.path)'
       pytest
     # condition: eq(variables['Agent.OS'], 'Linux')
     env:
