@@ -5,7 +5,7 @@ def ingest_csv(source_csv, target, key, secret, **kwargs):
     Bucket and namespace on TileDB Cloud.
 
     :param source_csv: S3 Bucket URI for the input CSV file.
-    :param target: The URI of the output TileDB Cloud array in the style of 
+    :param target: The URI of the output TileDB Cloud array in the style of
                    "tiledb://namespace/s3://bucket/array".
     :param key: The AWS Access Key ID for accessing the S3 Bucket.
     :param secret: The AWS Secret Access Key for accessing the S3 Bucket.
