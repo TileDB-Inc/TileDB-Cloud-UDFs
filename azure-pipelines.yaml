@@ -45,8 +45,9 @@ jobs:
       set -xeo pipefail
       pip list
       python -c 'import sys; print(sys.path)'
-      #pytest
       python -c 'import tiledb'
+      python -c 'import tiledb.cloud'
+      pytest -s
     # condition: eq(variables['Agent.OS'], 'Linux')
     env:
       TILEDB_REST_TOKEN: $(TILEDB_REST_TOKEN)
