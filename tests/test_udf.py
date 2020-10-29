@@ -374,4 +374,3 @@ def test_ingest_csv_dense_array_apppend(
             assert_array_equal(
                 data[attribute], np.array([row * 10 + col for row in range(1, 21)] * 2),
             )
-
