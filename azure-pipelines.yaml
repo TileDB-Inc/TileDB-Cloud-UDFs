@@ -43,27 +43,6 @@ jobs:
   - script: black --check .
     displayName: 'Test Formatting'
 
-  - script: python -m pip install --upgrade .
-    displayName: 'Test Install'
-
-    # Build the python distribution from source
-  - script: python setup.py bdist_wheel
-    displayName: 'Build wheel'
-
-  - bash: |
-      set -xeo pipefail
-      # Display log files if the build failed
-      echo "Dumping log files for failed build"
-      echo "----------------------------------"
-      for f in $(find $BUILD_REPOSITORY_LOCALPATH/build -name *.log);
-        do echo "------"
-           echo $f
-           echo "======"
-           cat $f
-        done;
-    condition: failed() # only run this job if the build step failed
-    displayName: "Print log files (failed build only)"
-
   - bash: |
       set -xeo pipefail
       pytest
