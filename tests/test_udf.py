@@ -76,7 +76,7 @@ def udf_uri(request, namespace):
     udf = types.FunctionType(request.param.__code__, {})
     test_udf_name = "test_{}".format(udf.__name__)
 
-    if not register_udfs.udf_exists(namespace, test_udf_name).udf_info_list:
+    if not register_udfs.udf_exists(namespace, test_udf_name):
         tiledb.cloud.udf.register_generic_udf(udf, test_udf_name)
     else:
         tiledb.cloud.udf.update_generic_udf(udf, test_udf_name)
