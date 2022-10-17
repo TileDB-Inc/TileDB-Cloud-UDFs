@@ -13,7 +13,7 @@ jobs:
   strategy:
     matrix:
       mac_37:
-        imageName: 'macOS-11.0'
+        imageName: 'macOS-11'
         python.version: '3.7'
       linux_py37:
         imageName: 'ubuntu-16.04'
