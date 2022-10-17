@@ -17,11 +17,15 @@ def add_all_public_udfs():
 
 def udf_exists(namespace, udf_name):
     arrays = tiledb.cloud.udf.client.list_arrays(
-        file_type=[
-            tiledb.cloud.rest_api.models.FileType.USER_DEFINED_FUNCTION],
-        namespace=namespace, search=udf_name).arrays
-    return True if arrays and (array for array in arrays
-                               if array.name == udf_name).__next__() else False
+        file_type=[tiledb.cloud.rest_api.models.FileType.USER_DEFINED_FUNCTION],
+        namespace=namespace,
+        search=udf_name,
+    ).arrays
+    return (
+        True
+        if arrays and (array for array in arrays if array.name == udf_name).__next__()
+        else False
+    )
 
 
 def add_public_udf(fnc, namespace="TileDB-Inc"):

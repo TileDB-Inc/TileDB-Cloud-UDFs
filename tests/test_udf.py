@@ -72,12 +72,11 @@ def udf_uri(request, namespace):
     # striping the public_udf module.
     # https://stackoverflow.com/questions/49821323/python3-pickle-a-function-without-side-effects
     import register_udfs
+
     udf = types.FunctionType(request.param.__code__, {})
     test_udf_name = "test_{}".format(udf.__name__)
 
-    if not register_udfs.udf_exists(
-        namespace, test_udf_name
-    ).udf_info_list:
+    if not register_udfs.udf_exists(namespace, test_udf_name).udf_info_list:
         tiledb.cloud.udf.register_generic_udf(udf, test_udf_name)
     else:
         tiledb.cloud.udf.update_generic_udf(udf, test_udf_name)
@@ -85,14 +84,15 @@ def udf_uri(request, namespace):
     return "{}/{}".format(namespace, test_udf_name)
 
     # TODO should delete the test UDF at teardown.
-    # tiledb.cloud.client.client.udf_api.delete_udf_info(namespace, test_udf_name)
+    # tiledb.cloud.client.client.udf_api.delete_udf_info(namespace,
+    # test_udf_name)
 
 
 @pytest.fixture(scope="session")
 def config():
-    """
-    The TILEDB_REST_TOKEN for accessing the unittest TileDB Cloud namespace must
-    be set by the user.
+    """The TILEDB_REST_TOKEN for accessing the unittest TileDB Cloud
+    namespace must be set by the user.
+
     """
     config = tiledb.Config()
     config["rest.token"] = os.environ["TILEDB_REST_TOKEN"]
@@ -103,21 +103,22 @@ def config():
 # group UDFs that write arrays to TileDB Cloud.
 @pytest.fixture(autouse=True, scope="function")
 def clean_arrays(array_name, namespace, bucket):
-    """
-    Remove the given array_name from the S3 Bucket located at bucket and TileDB
-    Cloud located at namespace. This is a set up and teardown function that runs
-    for all unit tests. This runs at the beginning of all tests, prior to
-    calling the UDF, to ensure that the array does not exist prior to writing.
-    It also runs at  end of all tests, regardless or passing, failing, or
-    prematurely erroring out, to remove the array.
+    """Remove the given array_name from the S3 Bucket located at bucket
+    and TileDB Cloud located at namespace. This is a set up and
+    teardown function that runs for all unit tests. This runs at the
+    beginning of all tests, prior to calling the UDF, to ensure that
+    the array does not exist prior to writing.  It also runs at end of
+    all tests, regardless or passing, failing, or prematurely erroring
+    out, to remove the array.
+
     """
     tiledb_uri = "tiledb://{}/{}.tdb".format(namespace, array_name)
     s3_uri = "s3://{}/{}.tdb".format(bucket, array_name)
 
     yield
 
-    # Supressing errors is a temporary solution to delays between writing (or in
-    # this case, deleting) and reading arrays on S3.
+    # Supressing errors is a temporary solution to delays between
+    # writing (or in this case, deleting) and reading arrays on S3.
 
     with suppress(Exception):
         tiledb.cloud.deregister_array(tiledb_uri)
