@@ -71,10 +71,11 @@ def udf_uri(request, namespace):
     # public_udfs.py. This workaround allows the UDF to be unpickled by
     # striping the public_udf module.
     # https://stackoverflow.com/questions/49821323/python3-pickle-a-function-without-side-effects
+    import register_udfs
     udf = types.FunctionType(request.param.__code__, {})
     test_udf_name = "test_{}".format(udf.__name__)
 
-    if not tiledb.cloud.udf.list_registered_udfs(
+    if not register_udfs.udf_exists(
         namespace, test_udf_name
     ).udf_info_list:
         tiledb.cloud.udf.register_generic_udf(udf, test_udf_name)
