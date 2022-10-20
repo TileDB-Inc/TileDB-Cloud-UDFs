@@ -84,7 +84,7 @@ def udf_uri(request, namespace):
     yield f"{namespace}/{test_udf_name}"
 
     # TODO should delete the test UDF at teardown.
-    tiledb.cloud.client.client.udf_api.delete_udf_info(namespace, test_udf_name)
+    # tiledb.cloud.client.client.udf_api.delete_udf_info(namespace, test_udf_name)
 
 
 @pytest.fixture(scope="session")
