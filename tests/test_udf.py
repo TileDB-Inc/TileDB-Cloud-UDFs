@@ -68,10 +68,13 @@ def udf_uri(request, namespace):
     udf = types.FunctionType(request.param.__code__, {})
     test_udf_name = "test_{}".format(udf.__name__)
 
-    udf_names = [arr.name for arr in tiledb.cloud.client.list_arrays(
-        file_type=[tiledb.cloud.rest_api.models.FileType.USER_DEFINED_FUNCTION],
-        namespace=namespace,
-    ).arrays]
+    udf_names = [
+        arr.name
+        for arr in tiledb.cloud.client.list_arrays(
+            file_type=[tiledb.cloud.rest_api.models.FileType.USER_DEFINED_FUNCTION],
+            namespace=namespace,
+        ).arrays
+    ]
 
     if test_udf_name not in udf_names:
         tiledb.cloud.udf.register_generic_udf(udf, test_udf_name)
@@ -107,7 +110,7 @@ def clean_arrays(array_name, namespace, bucket):
     It also runs at  end of all tests, regardless or passing, failing, or
     prematurely erroring out, to remove the array.
     """
-    tiledb_uri = f"tiledb://{namespace}/{array_name}.tdb" 
+    tiledb_uri = f"tiledb://{namespace}/{array_name}.tdb"
     s3_uri = f"s3://{bucket}/{array_name}.tdb"
 
     yield
@@ -285,7 +288,7 @@ def test_ingest_csv_sparse_array_null_replace(
         f"tiledb://{namespace}/s3://{bucket}/{array_name}.tdb",
         key,
         secret,
-        fillna= {"b": 321, "c": 123},
+        fillna={"b": 321, "c": 123},
         sparse=True,
         name=udf_uri,  # "unittest/test_ingest_csv" --> TileDB-Inc/ingest_csv
     )
