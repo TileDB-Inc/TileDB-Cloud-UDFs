@@ -81,7 +81,7 @@ def ingest_csv(source_csv, target, key, secret, **kwargs):
 def ingest_vcf_samples(
     array_uri: str,
     contig: Optional[str],
-    sample_uris: Union[str, Sequence[str]],
+    sample_uris: Sequence[str],
     partition_idx_count: Tuple[int, int],
     tiledb_config: Optional[Dict[str, str]],
     memory_budget_mb: int,
@@ -96,8 +96,6 @@ def ingest_vcf_samples(
     print(f"tiledbvcf v{tiledbvcf.version}")
 
     print(f"Ingesting into array '{array_uri}'")
-    if isinstance(sample_uris, str):
-        sample_uris = [sample_uris]
 
     # open the array
     cfg = tiledbvcf.ReadConfig(tiledb_config=tiledb_config)
