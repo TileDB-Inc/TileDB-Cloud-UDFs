@@ -98,6 +98,92 @@ def config():
     return config
 
 
+@pytest.mark.parametrize(
+    "udf_uri,array_name",
+    [(public_udfs.ingest_vcf_samples, "test_ingest_vcf_samples")],
+    indirect=["udf_uri", "array_name"],
+)
+def test_ingest_vcf_samples(
+    udf_uri, array_name, key, secret, namespace, bucket, config
+):
+    def set_up(key, secret, bucket, array_name):
+        import tiledbvcf
+
+        print(f"TileDB-VCF version: {tiledbvcf.version}")
+
+        ds = tiledbvcf.Dataset(
+            f"s3://{bucket}/{array_name}.tdb",
+            mode="w",
+            cfg=tiledbvcf.ReadConfig(
+                tiledb_config={
+                    "vfs.s3.aws_access_key_id": key,
+                    "vfs.s3.aws_secret_access_key": secret,
+                    "vfs.s3.connect_timeout_ms": 120000,
+                    "vfs.s3.request_timeout_ms": 120000,
+                }
+            ),
+        )
+        ds.create_dataset(
+            vcf_attrs="s3://genomic-datasets/vcf/1kg/1kghicov/vcfs/GBR/Sample_HG00096/analysis/HG00096.haplotypeCalls.er.raw.vcf.gz"
+        )
+
+    tiledb.cloud.udf.exec(set_up, key, secret, bucket, array_name)
+
+    time.sleep(10)
+
+    tiledb.cloud.udf.exec(
+        f"s3://{bucket}/{array_name}.tdb",
+        "chr1",
+        [
+            "s3://genomic-datasets/vcf/1kg/1kghicov/vcfs/GBR/Sample_HG00096/analysis/HG00096.haplotypeCalls.er.raw.vcf.gz",
+            "s3://genomic-datasets/vcf/1kg/1kghicov/vcfs/GBR/Sample_HG00097/analysis/HG00097.haplotypeCalls.er.raw.vcf.gz",
+            "s3://genomic-datasets/vcf/1kg/1kghicov/vcfs/GBR/Sample_HG00099/analysis/HG00099.haplotypeCalls.er.raw.vcf.gz",
+            "s3://genomic-datasets/vcf/1kg/1kghicov/vcfs/GBR/Sample_HG00100/analysis/HG00100.haplotypeCalls.er.raw.vcf.gz",
+            "s3://genomic-datasets/vcf/1kg/1kghicov/vcfs/GBR/Sample_HG00101/analysis/HG00101.haplotypeCalls.er.raw.vcf.gz",
+            "s3://genomic-datasets/vcf/1kg/1kghicov/vcfs/GBR/Sample_HG00102/analysis/HG00102.haplotypeCalls.er.raw.vcf.gz",
+            "s3://genomic-datasets/vcf/1kg/1kghicov/vcfs/GBR/Sample_HG00103/analysis/HG00103.haplotypeCalls.er.raw.vcf.gz",
+            "s3://genomic-datasets/vcf/1kg/1kghicov/vcfs/GBR/Sample_HG00105/analysis/HG00105.haplotypeCalls.er.raw.vcf.gz",
+            "s3://genomic-datasets/vcf/1kg/1kghicov/vcfs/GBR/Sample_HG00106/analysis/HG00106.haplotypeCalls.er.raw.vcf.gz",
+            "s3://genomic-datasets/vcf/1kg/1kghicov/vcfs/GBR/Sample_HG00107/analysis/HG00107.haplotypeCalls.er.raw.vcf.gz",
+        ],
+        (0, 2),
+        {
+            "vfs.s3.aws_access_key_id": key,
+            "vfs.s3.aws_secret_access_key": secret,
+            "vfs.s3.connect_timeout_ms": 120000,
+            "vfs.s3.request_timeout_ms": 120000,
+        },
+        7168,
+        4,
+        True,
+        True,
+        image_name="genomics",
+        name=udf_uri,
+    )
+
+    print("done executing", file=sys.stderr)
+
+    time.sleep(10)
+
+    def test_vcf_dataset(key, secret, bucket, array_name):
+        import tiledbvcf
+
+        ds = tiledbvcf.Dataset(
+            f"s3://{bucket}/{array_name}.tdb",
+            mode="r",
+            cfg=tiledbvcf.ReadConfig(
+                tiledb_config={
+                    "vfs.s3.aws_access_key_id": key,
+                    "vfs.s3.aws_secret_access_key": secret,
+                    "vfs.s3.connect_timeout_ms": 120000,
+                    "vfs.s3.request_timeout_ms": 120000,
+                }
+            ),
+        )
+
+    tiledb.cloud.udf.exec(test_vcf_dataset, key, secret, bucket, array_name)
+
+
 # This will likely be moved into its own class in the future. The class will
 # group UDFs that write arrays to TileDB Cloud.
 @pytest.fixture(autouse=True, scope="function")

@@ -1,3 +1,6 @@
+from typing import Dict, Optional, Sequence, Tuple, Union
+
+
 def ingest_csv(source_csv, target, key, secret, **kwargs):
     """
     Create TileDB array with an input CSV file located in a given S3 Bucket at source_csv. The S3
@@ -73,3 +76,43 @@ def ingest_csv(source_csv, target, key, secret, **kwargs):
     tiledb.from_csv(target, source_csv, **kwargs)
 
     return "done"
+
+
+def ingest_vcf_samples(
+    array_uri: str,
+    contig: Optional[str],
+    sample_uris: Sequence[str],
+    partition_idx_count: Tuple[int, int],
+    tiledb_config: Optional[Dict[str, str]],
+    memory_budget_mb: int,
+    threads: int,
+    stats: bool = False,
+    resume: bool = False,
+) -> Sequence[str]:
+    """Returns a list of the URIs that were ingested by this job."""
+    import tiledbvcf
+
+    tiledbvcf.config_logging("info")
+    print(f"tiledbvcf v{tiledbvcf.version}")
+
+    print(f"Ingesting into array '{array_uri}'")
+
+    # open the array
+    cfg = tiledbvcf.ReadConfig(tiledb_config=tiledb_config)
+    ds = tiledbvcf.Dataset(array_uri, mode="w", cfg=cfg, stats=stats)
+    print(f"Opened {array_uri} (schema v{ds.schema_version()})")
+    # sample partition index/number
+    sp_i, sp_n = partition_idx_count
+    this_shard = sample_uris[sp_i::sp_n]
+    if sp_n != 1:
+        print(f"Processing sample partition {sp_i} of {sp_n}")
+        print(f"...this partition includes {len(this_shard)} samples")
+    ds.ingest_samples(
+        sample_uris=this_shard,
+        total_memory_budget_mb=memory_budget_mb,
+        threads=threads,
+        contig_mode="separate" if contig else "merged",
+        **{"contigs_to_keep_separate": [contig]} if contig else {},
+        resume=resume,
+    )
+    return this_shard
